@@ -88,6 +88,14 @@ export async function getRules(): Promise<Rule[]> {
   return (await request<{ rules: Rule[] }>("/rules")).rules;
 }
 
+export async function closeConnection(id: string): Promise<void> {
+  await request<void>(`/connections/${encodePathSegment(id)}`, { method: "DELETE" });
+}
+
+export async function closeAllConnections(): Promise<void> {
+  await request<void>("/connections", { method: "DELETE" });
+}
+
 export async function flushDnsCache(): Promise<void> {
   await request<void>("/cache/dns/flush", { method: "POST" });
 }

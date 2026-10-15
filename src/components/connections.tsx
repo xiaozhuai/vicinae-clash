@@ -1,6 +1,8 @@
-import { Action, ActionPanel, Color, Icon, List } from "@vicinae/api";
+import { Action, ActionPanel, Alert, Color, confirmAlert, Icon, List, showToast, Toast } from "@vicinae/api";
 import { useMemo, useState } from "react";
+import { closeAllConnections, closeConnection } from "../lib/clash-api";
 import { prettyBytes } from "../lib/format";
+import { showError } from "../lib/toast";
 import { useWebSocketJson } from "../lib/use-websocket";
 import type { Connection, Connections as ConnectionsData } from "../types";
 
@@ -46,6 +48,43 @@ export default function Connections() {
     );
   }, [connections, searchText]);
 
+  async function closeOne(connection: Connection) {
+    const host = connectionHost(connection);
+    if (
+      !(await confirmAlert({
+        title: "Close this connection?",
+        message: host,
+        primaryAction: { title: "Close Connection", style: Alert.ActionStyle.Destructive },
+      }))
+    )
+      return;
+
+    try {
+      await closeConnection(connection.id);
+      await showToast({ style: Toast.Style.Success, title: "Connection Closed", message: host });
+    } catch (closeError) {
+      await showError("Could Not Close Connection", closeError);
+    }
+  }
+
+  async function closeAll() {
+    if (
+      !(await confirmAlert({
+        title: "Close all active connections?",
+        message: `This will close ${connections.length} active connection${connections.length === 1 ? "" : "s"}.`,
+        primaryAction: { title: "Close All", style: Alert.ActionStyle.Destructive },
+      }))
+    )
+      return;
+
+    try {
+      await closeAllConnections();
+      await showToast({ style: Toast.Style.Success, title: "All Connections Closed" });
+    } catch (closeError) {
+      await showError("Could Not Close All Connections", closeError);
+    }
+  }
+
   return (
     <List
       filtering={false}
@@ -83,6 +122,18 @@ export default function Connections() {
                 onAction={() => setShowRouting((value) => !value)}
               />
               <Action.CopyToClipboard title="Copy Connection Details" content={connectionText(connection)} />
+              <Action
+                title="Close Connection"
+                icon={Icon.XMarkCircle}
+                style={Action.Style.Destructive}
+                onAction={() => void closeOne(connection)}
+              />
+              <Action
+                title="Close All Connections"
+                icon={Icon.Trash}
+                style={Action.Style.Destructive}
+                onAction={() => void closeAll()}
+              />
             </ActionPanel>
           }
         />
