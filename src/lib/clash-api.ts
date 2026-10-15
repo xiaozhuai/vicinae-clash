@@ -1,4 +1,4 @@
-import type { Backend, ClashProxy, Config, Mode, Rule } from "../types";
+import type { Backend, ClashProxy, Config, Mode, Rule, Version } from "../types";
 import { getCurrentBackend } from "./backends";
 
 export class NoBackendError extends Error {
@@ -51,6 +51,10 @@ export async function request<T>(endpoint: string, init: RequestInit = {}): Prom
 
 export async function getConfig(): Promise<Config> {
   return request<Config>("/configs");
+}
+
+export async function getVersion(): Promise<Version> {
+  return request<Version>("/version");
 }
 
 export async function setMode(mode: Mode): Promise<void> {

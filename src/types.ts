@@ -32,6 +32,7 @@ export type Connection = {
 export type Connections = {
   downloadTotal: number;
   uploadTotal: number;
+  memory?: number;
   connections: Connection[];
 };
 
@@ -51,4 +52,17 @@ export type ClashProxy = {
 
 export type Rule = { type: string; payload: string; proxy: string };
 export type Mode = "rule" | "global" | "direct" | "script";
-export type Config = { mode: Mode; [key: string]: unknown };
+export type Config = {
+  mode: Mode;
+  "allow-lan"?: boolean;
+  ipv6?: boolean;
+  tun?: { enable?: boolean };
+  port?: number;
+  "socks-port"?: number;
+  "mixed-port"?: number;
+  "redir-port"?: number;
+  "tproxy-port"?: number;
+  [key: string]: unknown;
+};
+
+export type Version = { meta: boolean; version: string };
