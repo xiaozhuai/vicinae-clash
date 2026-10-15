@@ -88,6 +88,22 @@ export async function getRules(): Promise<Rule[]> {
   return (await request<{ rules: Rule[] }>("/rules")).rules;
 }
 
+export async function getRuleProviderCounts(): Promise<Record<string, number>> {
+  const data = await request<{ providers: Record<string, { ruleCount?: number }> }>("/providers/rules");
+  return Object.fromEntries(
+    Object.entries(data.providers).flatMap(([name, provider]) =>
+      typeof provider.ruleCount === "number" && provider.ruleCount >= 0 ? [[name, provider.ruleCount]] : [],
+    ),
+  );
+}
+
+export async function setRuleDisabled(index: number, disabled: boolean): Promise<void> {
+  await request<void>("/rules/disable", {
+    method: "PATCH",
+    body: JSON.stringify({ [index]: disabled }),
+  });
+}
+
 export async function closeConnection(id: string): Promise<void> {
   await request<void>(`/connections/${encodePathSegment(id)}`, { method: "DELETE" });
 }

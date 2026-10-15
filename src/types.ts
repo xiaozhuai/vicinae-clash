@@ -50,7 +50,22 @@ export type ClashProxy = {
   "provider-name"?: string;
 };
 
-export type Rule = { type: string; payload: string; proxy: string };
+export type RuleStats = {
+  disabled: boolean;
+  hitCount: number;
+  hitAt: string;
+  missCount: number;
+  missAt: string;
+};
+
+export type Rule = {
+  index: number;
+  type: string;
+  payload: string;
+  proxy: string;
+  size: number;
+  extra?: RuleStats;
+};
 export type Mode = "rule" | "global" | "direct" | "script";
 export type Config = {
   mode: Mode;
