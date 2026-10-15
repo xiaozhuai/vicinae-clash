@@ -4,6 +4,16 @@ A Vicinae extension for monitoring and controlling a Clash-compatible REST API.
 
 Source repository: [xiaozhuai/vicinae-clash](https://github.com/xiaozhuai/vicinae-clash)
 
+## Screenshots
+
+### Dashboard
+
+![Clash Dashboard](screenshots/image1.png)
+
+### Proxies
+
+![Clash proxies](screenshots/image2.png)
+
 ## Features
 
 - Traffic and connection overview
