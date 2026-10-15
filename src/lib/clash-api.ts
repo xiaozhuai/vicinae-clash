@@ -1,0 +1,85 @@
+import type { Backend, ClashProxy, Config, Mode, Rule } from "../types";
+import { getCurrentBackend } from "./backends";
+
+export class NoBackendError extends Error {
+  constructor() {
+    super("No Clash backend is configured. Open Backends to add one.");
+  }
+}
+
+function encodePathSegment(value: string): string {
+  return encodeURIComponent(value);
+}
+
+export async function buildWebSocketUrl(endpoint: string, params: Record<string, string> = {}): Promise<string> {
+  const backend = await getCurrentBackend();
+  if (!backend) throw new NoBackendError();
+  const url = new URL(`${backend.url}${endpoint}`);
+  url.protocol = url.protocol === "https:" ? "wss:" : "ws:";
+  for (const [key, value] of Object.entries(params)) url.searchParams.set(key, value);
+  if (backend.secret) url.searchParams.set("token", backend.secret);
+  return url.toString();
+}
+
+export async function requestBackend<T>(backend: Backend, endpoint: string, init: RequestInit = {}): Promise<T> {
+  const response = await fetch(`${backend.url}${endpoint}`, {
+    ...init,
+    headers: {
+      ...(init.body ? { "Content-Type": "application/json" } : {}),
+      ...(backend.secret ? { Authorization: `Bearer ${backend.secret}` } : {}),
+      ...init.headers,
+    },
+  });
+  if (!response.ok) {
+    let detail = "";
+    try {
+      detail = (await response.text()).trim();
+    } catch {
+      // Ignore an unreadable error body.
+    }
+    throw new Error(`Clash API ${response.status}${detail ? `: ${detail}` : ""}`);
+  }
+  if (response.status === 204) return undefined as T;
+  return (await response.json()) as T;
+}
+
+export async function request<T>(endpoint: string, init: RequestInit = {}): Promise<T> {
+  const backend = await getCurrentBackend();
+  if (!backend) throw new NoBackendError();
+  return requestBackend<T>(backend, endpoint, init);
+}
+
+export async function getConfig(): Promise<Config> {
+  return request<Config>("/configs");
+}
+
+export async function setMode(mode: Mode): Promise<void> {
+  await request<void>("/configs", { method: "PATCH", body: JSON.stringify({ mode }) });
+}
+
+export async function getProxies(): Promise<ClashProxy[]> {
+  const data = await request<{ proxies: Record<string, Omit<ClashProxy, "name">> }>("/proxies");
+  return Object.entries(data.proxies).map(([name, proxy]) => ({ name, ...proxy }));
+}
+
+export async function selectProxy(group: string, name: string): Promise<void> {
+  await request<void>(`/proxies/${encodePathSegment(group)}`, {
+    method: "PUT",
+    body: JSON.stringify({ name }),
+  });
+}
+
+export async function getProxyDelay(
+  name: string,
+  timeout = 5000,
+  testUrl = "https://www.gstatic.com/generate_204",
+): Promise<number> {
+  const params = new URLSearchParams({ timeout: String(timeout), url: testUrl });
+  const data = await request<{ delay: number }>(`/proxies/${encodePathSegment(name)}/delay?${params.toString()}`);
+  if (!Number.isFinite(data.delay)) throw new Error(`Invalid delay returned for ${name}.`);
+  return data.delay;
+}
+
+export async function getRules(): Promise<Rule[]> {
+  return (await request<{ rules: Rule[] }>("/rules")).rules;
+}
