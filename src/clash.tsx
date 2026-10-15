@@ -2,6 +2,7 @@ import { Action, ActionPanel, Color, Icon, List, useNavigation } from "@vicinae/
 import { useEffect, useMemo, useState } from "react";
 import Connections from "./components/connections";
 import Logs from "./components/logs";
+import Maintenance from "./components/maintenance";
 import Mode from "./components/mode";
 import Overview from "./components/overview";
 import Proxies from "./components/proxies";
@@ -16,6 +17,12 @@ const PAGES = [
   { title: "Rules", subtitle: "Search the complete rule list", icon: Icon.Shield01, target: <Rules /> },
   { title: "Connections", subtitle: "Inspect active connections", icon: Icon.Globe01, target: <Connections /> },
   { title: "Logs", subtitle: "Watch live Clash logs", icon: Icon.Text, target: <Logs /> },
+  {
+    title: "Maintenance",
+    subtitle: "Clear caches and update GEO data",
+    icon: Icon.Cog,
+    target: <Maintenance />,
+  },
 ] as const;
 
 function Dashboard() {

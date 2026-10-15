@@ -83,3 +83,18 @@ export async function getProxyDelay(
 export async function getRules(): Promise<Rule[]> {
   return (await request<{ rules: Rule[] }>("/rules")).rules;
 }
+
+export async function flushDnsCache(): Promise<void> {
+  await request<void>("/cache/dns/flush", { method: "POST" });
+}
+
+export async function flushFakeIpCache(): Promise<void> {
+  await request<void>("/cache/fakeip/flush", { method: "POST" });
+}
+
+export async function updateGeoDatabase(): Promise<void> {
+  await request<void>("/upgrade/geo", {
+    method: "POST",
+    body: JSON.stringify({ path: "", payload: "" }),
+  });
+}

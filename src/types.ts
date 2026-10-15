@@ -44,6 +44,9 @@ export type ClashProxy = {
   all?: string[];
   now?: string;
   type: string;
+  alive?: boolean;
+  udp?: boolean;
+  "provider-name"?: string;
 };
 
 export type Rule = { type: string; payload: string; proxy: string };
